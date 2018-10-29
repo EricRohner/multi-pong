@@ -1,0 +1,15 @@
+{
+  "name": "multi-pong",
+  "version": "1.0.0",
+  "description": "a multiplayer pong game using websockets",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Eric Rohner",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.4",
+    "socket.io": "^2.1.1"
+  }
+}
