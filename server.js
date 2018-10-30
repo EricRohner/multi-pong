@@ -28,7 +28,7 @@ let gameState = {
   y: 280,
   height: 80,
   width: 15,
-  velocityY: 5,
+  velocityY: 10,
   color: "#ffffff",
   score: 0
   },
@@ -39,7 +39,7 @@ let gameState = {
     y: 280,
     height: 80,
     width: 15,
-    velocityY: 5,
+    velocityY: 10,
     color: "#ffffff",
     score: 0
   },
@@ -48,8 +48,8 @@ let gameState = {
     y: 250,
     height: 15,
     width: 15,
-    velocityX: 1,
-    velocityY: 1,
+    velocityX: 2,
+    velocityY: 2,
     color: "#ffffff"
   }
 }
@@ -190,11 +190,11 @@ setInterval(() => {
     // would result in it switching X direction every frame. Since few players have frame
     // perfect timing this essentially gives the top and bottom of the paddle a 50/50 chance
     // to lose the volley. Players don't like random chance hurting them in a skill game.
-    gameState.ball.velocityX = Math.abs(gameState.ball.velocityX) + .5
+    gameState.ball.velocityX = Math.abs(gameState.ball.velocityX) + 1
     if (40 in gameState.player1.keys) {
-      gameState.ball.velocityY += 1
+      gameState.ball.velocityY += 2
     } else if (38 in gameState.player1.keys) {
-      gameState.ball.velocityY -= 1
+      gameState.ball.velocityY -= 2
     }
   } else if (
     gameState.ball.x + gameState.ball.width + gameState.ball.velocityX >=
@@ -204,11 +204,11 @@ setInterval(() => {
     gameState.player2.y + gameState.player2.height
   ) {
     // see bug fix above
-    gameState.ball.velocityX = (Math.abs(gameState.ball.velocityX) * -1) -.5
+    gameState.ball.velocityX = (Math.abs(gameState.ball.velocityX) * -1) -1
     if (40 in gameState.player2.keys) {
-      gameState.ball.velocityY += 1
+      gameState.ball.velocityY += 2
     } else if (38 in gameState.player2.keys) {
-      gameState.ball.velocityY -= 1
+      gameState.ball.velocityY -= 2
     }
     
   } else if (
@@ -216,13 +216,13 @@ setInterval(() => {
     gameState.player1.x - gameState.player1.width
   ) {
     gameState.player2.score += 1
-    gameState.ball = ({ ...gameState.ball, x: 375, y: 250, velocityX: -1, velocityY: 1 })
+    gameState.ball = ({ ...gameState.ball, x: 375, y: 250, velocityX: -2, velocityY: 2 })
   } else if (
     gameState.ball.x + gameState.ball.velocityX >
     gameState.player2.x + gameState.player2.width
   ) {
     gameState.player1.score += 1
-    gameState.ball = ({ ...gameState.ball, x: 375, y: 250, velocityX: 1, velocityY: 1  })
+    gameState.ball = ({ ...gameState.ball, x: 375, y: 250, velocityX: 2, velocityY: 2  })
   } else {
     gameState.ball.x += gameState.ball.velocityX
     gameState.ball.y += gameState.ball.velocityY
@@ -230,4 +230,4 @@ setInterval(() => {
 }
   // send updated gameState
   io.sockets.emit('state', gameState);
-}, 1000 / 60);
+}, 1000 / 30);

@@ -16,7 +16,7 @@ socket.on('message', function(data) {
   socket.emit('new player');
 setInterval(function() {
   socket.emit('movement', keys);
-}, 1000 / 60);
+}, 1000 / 30);
 
 var canvas = document.getElementById('canvas');
 canvas.width = 750;
