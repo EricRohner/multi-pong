@@ -22,13 +22,13 @@ var canvas = document.getElementById('canvas');
 canvas.width = 750;
 canvas.height = 500;
 var context = canvas.getContext('2d');
-socket.on('state', function(players) {
+socket.on('state', function(items) {
   context.clearRect(0, 0, 750, 500);
   context.fillStyle = 'green';
-  for (var id in players) {
-    var player = players[id];
-    context.beginPath();
-    context.arc(player.x, player.y, 10, 0, 2 * Math.PI);
-    context.fill();
+  context.fillRect(0, 0, 750, 500)
+  for (var id in items) {
+    var item = items[id];
+    context.fillStyle = item.color
+    context.fillRect(item.x, item.y, item.width, item.height)
   }
 });
