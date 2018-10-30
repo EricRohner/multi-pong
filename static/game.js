@@ -22,6 +22,7 @@ var canvas = document.getElementById('canvas');
 canvas.width = 750;
 canvas.height = 500;
 var context = canvas.getContext('2d');
+
 socket.on('state', function(items) {
   context.clearRect(0, 0, 750, 500);
   context.fillStyle = 'green';
@@ -31,4 +32,8 @@ socket.on('state', function(items) {
     context.fillStyle = item.color
     context.fillRect(item.x, item.y, item.width, item.height)
   }
+  context.font = '20px Arial'
+  context.fillStyle = '#ffffff'
+  context.fillText(items.player1.score, 375 - (items.player1.score > 9 ? 55 : 45), 30)
+  context.fillText(items.player2.score, 375 + 33, 30)
 });

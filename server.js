@@ -21,11 +21,12 @@ io.on('connection', (socket) => {
 
 //init game variables
 let sockets = {};
+let pause = true
 let gameState = {
   player1:{
   assigned: 0,
   x: 15,
-  y: 250,
+  y: 280,
   height: 80,
   width: 15,
   velocityY: 5,
@@ -35,7 +36,7 @@ let gameState = {
   player2:{
     assigned: 0,
     x: 720,
-    y: 250,
+    y: 280,
     height: 80,
     width: 15,
     velocityY: 5,
@@ -60,23 +61,35 @@ io.on('connection', (socket) => {
     if (!gameState.player1.assigned){
       sockets[socket.id] = {player: 1};
       gameState.player1.assigned = socket.id
+      //only unpause if there's a player 2 waiting
+      if(gameState.player2.assigned){
+        pause = false
+      }
     //assign player1 if it's unclaimed
     } else if (!gameState.player2.assigned) {
       sockets[socket.id] = {player: 2};
       gameState.player2.assigned = socket.id
+      //player 2 can only be assigned when there is already a player 1 waiting
+      pause = false
       //game is full, you're an observer
     } else {
       sockets[socket.id] = {player: "observer"}
   }
   //when a disconnect occurs unassign their player and delete them from open sockets
-  socket.on('disconnect', () => {
+  socket.on('disconnect', function() {
     if(sockets[socket.id].player === 1){
       gameState.player1.assigned = 0;
+      gameState.player1.score = 0;
+      gameState.player2.score = 0;
       gameState.player1.y = 280;
+      pause = true
     }
     if(sockets[socket.id].player === 2){
       gameState.player2.assigned = 0;
+      gameState.player1.score = 0;
+      gameState.player2.score = 0;
       gameState.player2.y = 280;
+      pause = true
     }
       delete sockets[socket.id]
     });
@@ -109,6 +122,7 @@ io.on('connection', (socket) => {
 });
 //attempt to send state at 60 fps
 setInterval(() => {
+  if(!pause){
   //collision y
   if (
     gameState.ball.y + gameState.ball.velocityY <= 0 ||
@@ -172,6 +186,7 @@ setInterval(() => {
     gameState.ball.x += gameState.ball.velocityX
     gameState.ball.y += gameState.ball.velocityY
   }
+}
   //send updated gameState
   io.sockets.emit('state', gameState);
 }, 1000 / 60);
