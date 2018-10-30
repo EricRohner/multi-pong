@@ -27,6 +27,8 @@ socket.on('state', function(items) {
   context.clearRect(0, 0, 750, 500);
   context.fillStyle = 'green';
   context.fillRect(0, 0, 750, 500)
+  context.fillStyle = "white"
+  context.fillRect(373, 0, 5, 500)
   for (var id in items) {
     var item = items[id];
     context.fillStyle = item.color

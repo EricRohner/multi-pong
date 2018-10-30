@@ -1,11 +1,12 @@
 // Dependencies
-var express = require('express');
-var http = require('http');
-var path = require('path');
-var socketIO = require('socket.io');
-var app = express();
-var server = http.Server(app);
-var io = socketIO(server);
+const express = require('express');
+const http = require('http');
+const path = require('path');
+const socketIO = require('socket.io');
+const app = express();
+const server = http.Server(app);
+const io = socketIO(server);
+const fetch = require("node-fetch");
 app.set('port', process.env.PORT || 5000);
 app.use('/static', express.static(__dirname + '/static'));
 // Routing
@@ -81,6 +82,7 @@ io.on('connection', (socket) => {
       gameState.player1.assigned = 0;
       gameState.player1.score = 0;
       gameState.player2.score = 0;
+      gameState.ball.x = 375;
       gameState.player1.y = 280;
       pause = true
     }
@@ -120,7 +122,42 @@ io.on('connection', (socket) => {
     }
   });
 });
-//attempt to send state at 60 fps
+
+ setInterval( async () => {
+  response = await fetch(
+    'https://wwwforms.suralink.com/pong.php?accessToken=pingPONG'
+  )
+  response = await response.json();
+  // i could validate more but I trust the server so a simple !array test tells me if important data is coming in or not
+  if (!Array.isArray(response.gameData.paddle1)) {
+    //shallow merge player1 and paddle1. Set the result to state.
+    gameState.player1 = { ...gameState.player1, ...response.gameData.paddle1 } 
+    // fix color so that it can be displayed without any further logic unless it's a string meaning we already did so
+    if (typeof(gameState.player1.color) !== 'string') {
+      gameState.player1.color = '#' + gameState.player1.color.hex
+    }
+  }
+  if (!Array.isArray(response.gameData.paddle2)) {
+    gameState.player2 = { ...gameState.player2, ...response.gameData.paddle2 } 
+    if (typeof(gameState.player2.color) !== 'string') {
+      gameState.player2.color = '#' + gameState.player2.color.hex
+    }
+  }
+  if (!Array.isArray(response.gameData.ball)) {
+    // Ball velocity from server is always positive. We don't want to punish player 2
+    let velX = gameState.ball.velocityX
+    gameState.ball= { ...gameState.ball, ...response.gameData.ball }
+    if (typeof(gameState.ball.color) !== 'string') {
+      gameState.ball.color= '#' + gameState.ball.color.hex
+    }
+    if(velX<0 && gameState.ball.velocityX>0){
+      gameState.ball.velocityX = gameState.ball.velocityX * -1
+    }
+  }
+}, 5000)
+
+
+//calculate new state and attempt to send at 60 fps
 setInterval(() => {
   if(!pause){
   //collision y
