@@ -16,7 +16,7 @@ app.get("/", (request, response) => {
 // start the server. use heroku app's process.env.PORT or 5000 if running locally
 server.listen(process.env.PORT || 5000, () => {});
 
-// initialize game variables
+// initialize game
 let sockets = {};
 let pause = true;
 let gameState = {
