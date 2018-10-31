@@ -93,7 +93,10 @@ io.on("connection", socket => {
   });
   socket.on("movement", data => {
     // validate incoming control data
-    if (typeof data !== "undefined") {
+    if (
+      typeof data !== "undefined" &&
+      typeof sockets[socket.id].player !== "undefined"
+    ) {
       if (sockets[socket.id].player === 1) {
         gameState.player1.keys = data;
       } else if (sockets[socket.id].player === 2) {
