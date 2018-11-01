@@ -64,7 +64,7 @@ io.on("connection", socket => {
       if (gameState.player2.assigned) {
         pause = false;
       }
-      // assign player1 if it's unclaimed
+      // assign player2 if it's unclaimed
     } else if (!gameState.player2.assigned) {
       sockets[socket.id] = { player: 2 };
       gameState.player2.assigned = socket.id;
@@ -92,9 +92,10 @@ io.on("connection", socket => {
     });
   });
   socket.on("movement", data => {
-    // validate incoming control data
     if (
+      // validate incoming control data
       typeof data !== "undefined" &&
+      // without this line the server can crash when a player leaves with a key pressed!
       typeof sockets[socket.id].player !== "undefined"
     ) {
       if (sockets[socket.id].player === 1) {
@@ -145,43 +146,50 @@ io.on("connection", socket => {
 });
 
 setInterval(async () => {
-  if (!pause) {
-    response = await fetch(
-      "https://wwwforms.suralink.com/pong.php?accessToken=pingPONG"
-    );
-    response = await response.json();
-    // i could validate more but I trust the server so a simple !array test tells me if important data is coming in or not
-    if (!Array.isArray(response.gameData.paddle1)) {
-      // shallow merge player1 and paddle1. Set the result to state.
-      gameState.player1 = {
-        ...gameState.player1,
-        ...response.gameData.paddle1
-      };
-      // fix color so that it can be displayed without any further logic unless it's a string meaning we already did so
-      if (typeof gameState.player1.color !== "string") {
-        gameState.player1.color = "#" + gameState.player1.color.hex;
+  try {
+    if (!pause) {
+      response = await fetch(
+        "https://wwwforms.suralink.com/pong.php?accessToken=pingPONG"
+      );
+      response = await response.json();
+      // i could validate more but I trust the server so a simple !array test tells me if important data is coming in or not
+      if (!Array.isArray(response.gameData.paddle1)) {
+        // shallow merge player1 and paddle1. Set the result to state.
+        gameState.player1 = {
+          ...gameState.player1,
+          ...response.gameData.paddle1
+        };
+        // fix color so that it can be displayed without any further logic unless it's a string meaning we already did so
+        if (typeof gameState.player1.color !== "string") {
+          gameState.player1.color = "#" + gameState.player1.color.hex;
+        }
+      }
+      if (!Array.isArray(response.gameData.paddle2)) {
+        gameState.player2 = {
+          ...gameState.player2,
+          ...response.gameData.paddle2
+        };
+        if (typeof gameState.player2.color !== "string") {
+          gameState.player2.color = "#" + gameState.player2.color.hex;
+        }
+      }
+      if (!Array.isArray(response.gameData.ball)) {
+        // Ball velocity from server is always positive. We don't want to punish player 2
+        let velX = gameState.ball.velocityX;
+        gameState.ball = { ...gameState.ball, ...response.gameData.ball };
+        // was the previous velocityX negative?
+        if (velX < 0) {
+          gameState.ball.velocityX = gameState.ball.velocityX * -1;
+        }
+        if (typeof gameState.ball.color !== "string") {
+          gameState.ball.color = "#" + gameState.ball.color.hex;
+        }
+        
       }
     }
-    if (!Array.isArray(response.gameData.paddle2)) {
-      gameState.player2 = {
-        ...gameState.player2,
-        ...response.gameData.paddle2
-      };
-      if (typeof gameState.player2.color !== "string") {
-        gameState.player2.color = "#" + gameState.player2.color.hex;
-      }
-    }
-    if (!Array.isArray(response.gameData.ball)) {
-      // Ball velocity from server is always positive. We don't want to punish player 2
-      let velX = gameState.ball.velocityX;
-      gameState.ball = { ...gameState.ball, ...response.gameData.ball };
-      if (typeof gameState.ball.color !== "string") {
-        gameState.ball.color = "#" + gameState.ball.color.hex;
-      }
-      if (velX < 0 && gameState.ball.velocityX > 0) {
-        gameState.ball.velocityX = gameState.ball.velocityX * -1;
-      }
-    }
+    //Not expecting errors here but it's better to be safe
+  } catch (err) {
+    console.log(err);
   }
 }, 5000);
 
